@@ -1,5 +1,0 @@
-db - dataBase
-variables and functions - variables_and_functions
-classes - Class
-
-

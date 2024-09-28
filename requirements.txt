@@ -1,0 +1,7 @@
+Python Libs:
+    -numpy
+    -flask
+    -sqlite3
+    -requests
+    -random
+
