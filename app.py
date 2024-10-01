@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from get_movies import movies_search, update_movie_weights
+from get_movies import main, update_movie_weights
 
 app = Flask(__name__)
 
@@ -11,28 +11,18 @@ def get_movies():
     if not provider or not genres:
         return jsonify({'error': 'Parâmetros "provider" e "genres" são necessários.'}), 400
 
-    movies = movies_search(provider, genres)
-    movies_list = [dict(movie) for movie in movies]
+    movies = main(provider, genres)
 
-    return jsonify(movies_list)
+    return jsonify(movies)
 
 @app.route('/feedback', methods=['POST'])
 def feedback():
-    data = request.get_json()
-    movie_id = data.get('movie_id')
-    feedback = data.get('feedback')  # 'like' ou 'dislike'
+    feedbacks = request.get_json()
 
-    if not movie_id or feedback not in ['like', 'dislike']:
-        return jsonify({'error': 'Campos "movie_id" e "feedback" são necessários.'}), 400
+    if not feedbacks:
+        return jsonify({'error': 'Nenhum feedback encontrado.'}), 400
 
-    if feedback == 'like':
-        id_to_gain = {movie_id: 0}  # O valor real não importa aqui
-        ids_to_lose = {}
-    else:
-        id_to_gain = {}
-        ids_to_lose = {movie_id: 0}
-
-    update_movie_weights(id_to_gain, ids_to_lose)
+    update_movie_weights(feedbacks)
 
     return jsonify({'message': 'Feedback recebido com sucesso.'})
 
