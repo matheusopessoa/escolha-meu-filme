@@ -1,15 +1,20 @@
 import sqlite3
 import random
 
+# Função para estabelecer uma conexão com o banco de dados SQLite
 def get_db_connection():
+    # Conecta ao banco de dados 'database.db' (SQLite)
     conn = sqlite3.connect('database.db')
+    # Retorna o objeto de conexão para ser usado nas operações de banco de dados
     return conn
 
+# Função que busca filmes de acordo com o provedor e os gêneros fornecidos
 def movies_search(provider: str, genres: list) -> list:
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    count_genres = len(genres)
+    conn = get_db_connection()  # Estabelece a conexão com o banco de dados
+    cursor = conn.cursor()  # Cria um cursor para executar consultas SQL
+    count_genres = len(genres)  # Conta quantos gêneros foram passados como argumento
 
+    # Se houver mais de um gênero, monta uma query mais complexa
     if count_genres > 1:
         query = '''
         SELECT * FROM movies 
@@ -20,6 +25,7 @@ def movies_search(provider: str, genres: list) -> list:
             (genre_ids LIKE ? OR genre_ids LIKE ? OR genre_ids LIKE ? OR genre_ids = ?)
         )
         '''
+        # Executa a query, buscando filmes que correspondam ao provedor e aos dois gêneros
         results = cursor.execute(query, (
             provider, 
             f'%, {genres[0]},%', f'{genres[0]},%', f'%, {genres[0]}', genres[0], 
@@ -27,84 +33,91 @@ def movies_search(provider: str, genres: list) -> list:
         )).fetchall()
     
     else:
+        # Caso haja apenas um gênero, monta uma query mais simples
         query = '''
         SELECT * FROM movies 
         WHERE provider = ? 
         AND (genre_ids LIKE ? OR genre_ids LIKE ? OR genre_ids LIKE ? OR genre_ids = ?)
         '''
+        # Executa a query buscando filmes que correspondam ao provedor e ao único gênero
         results = cursor.execute(query, (
             provider, 
             f'%,{genres[0]},%', f'{genres[0]},%', f'%,{genres[0]}', genres[0]
         )).fetchall()
 
-    conn.close()
-    #ID[0], Genres[1], Provider[2], Weight[3], Tittle[4], Description[5], Orignal_Lang[6], 
+    conn.close()  # Fecha a conexão com o banco de dados
+    
+    # A query retorna várias colunas: ID, Gêneros, Provedor, Peso, Título, Descrição, etc.
+    #ID[0], Genres[1], Provider[2], Weight[3], Title[4], Description[5], Original_Lang[6], 
     #Popularity[7], Release_date[8], Vote_Average[9], Vote_count[10] 
-    return results
+    return results  # Retorna a lista de resultados da busca
 
-def update_movie_weights(feedbacks_dict):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    feedbacks_list = feedbacks_dict['feedbacks']
+# Função que atualiza os pesos dos filmes com base no feedback do usuário
+def update_movie_weights(feedbacks_dict: dict) -> None:
+    conn = get_db_connection()  # Estabelece a conexão com o banco de dados
+    cursor = conn.cursor()  # Cria um cursor para executar comandos SQL
+    feedbacks_list = feedbacks_dict['feedbacks']  # Extrai a lista de feedbacks do dicionário
 
+    # Itera sobre a lista de feedbacks para processar cada filme
     for feedb in feedbacks_list:
-        id, feedback = feedb['movie_id'], feedb['feedback']
+        id, feedback = feedb['movie_id'], feedb['feedback']  # Extrai o ID do filme e o feedback
+        # Obtém o peso atual do filme no banco de dados
         weight = cursor.execute('SELECT weight FROM movies WHERE id = ?', (id,)).fetchone()
-        new_weight = float(weight[0])
+        new_weight = float(weight[0])  # Converte o peso para um número decimal
 
-        if new_weight > 0.35 and new_weight < 0.85:
+        # Verifica se o peso está entre 0.3 e 1.0 antes de atualizá-lo
+        if new_weight > 0.3 and new_weight < 1.0:
+            # Ajusta o peso com base no feedback do usuário
             if feedback == 'like':
-                new_weight += 0.10
+                new_weight += 0.10  # Aumenta o peso se o feedback for 'like'
             elif feedback == 'dislike':
-                new_weight -= 0.10
+                new_weight -= 0.10  # Diminui o peso se o feedback for 'dislike'
         
+        # Arredonda o novo peso para 2 casas decimais
         weight = (round(new_weight, 2))
+        # Atualiza o peso do filme no banco de dados
         cursor.execute('UPDATE movies SET weight = ? WHERE id = ?', (weight, id))
-    conn.commit()
+    
+    conn.commit()  # Confirma as alterações no banco de dados
+    conn.close()  # Fecha a conexão
 
-    conn.close()
+# Função principal que filtra e retorna filmes com base no provedor e gêneros fornecidos
+def main(provider: str, genres: list) -> dict:
+    movies_list = movies_search(provider, genres)  # Busca a lista de filmes com base nos parâmetros
+    movies_to_return = {}  # Dicionário para armazenar os filmes selecionados
 
-def main(provider: str, genres: list):
-    movies_list = movies_search(provider, genres)
-    movies_to_return = {}
-
+    # Itera sobre a lista de filmes retornada pela busca
     for movie in movies_list:
-        weight, vote_average, title = float(movie[3]), float(movie[9]), str(movie[4])
-        probability = round(random.uniform(0, 1), 3)
+        weight, vote_average, title = float(movie[3]), float(movie[9]), str(movie[4])  # Extrai peso, média de votos e título
+        probability = round(random.uniform(0, 1), 3)  # Gera um número aleatório para comparar com o peso
 
+        # Se houver mais de 100 filmes, filtra os que têm peso e média de votos maiores
         if len(movies_list) > 100:
             if (len(movies_to_return) != len(movies_list) and 
                 weight > probability and 
                 vote_average > 7.5):
+                # Adiciona o filme ao dicionário de retorno se atender aos critérios
                 movies_to_return[f'{title}'] = movie
+
+        # Se houver mais de 50 filmes, usa um critério menos restritivo
         elif len(movies_list) > 50:
             if (len(movies_to_return) != len(movies_list) and 
                 weight > probability and 
                 vote_average > 7):
                 movies_to_return[f'{title}'] = movie
+
+        # Se houver mais de 10 filmes, relaxa ainda mais o critério
         elif len(movies_list) > 10:
             if (len(movies_to_return) != len(movies_list) and 
                 weight > probability and 
                 vote_average > 6.5):
                 movies_to_return[f'{title}'] = movie
+
+        # Se houver poucos filmes, usa critérios mais flexíveis
         else:
             if vote_average > 6.0:
                 movies_to_return[f'{title}'] = movie
     
-    return movies_to_return
+    return movies_to_return  # Retorna o dicionário com os filmes filtrados
 
-if __name__ == '__main__':
-    a = {
-  "feedbacks": [
-    {
-      "movie_id": "10515",
-      "feedback": "like"
-    },
-    {
-      "movie_id": "497582",
-      "feedback": "dislike"
-    }
-  ]
-}
-    update_movie_weights(a)
 
