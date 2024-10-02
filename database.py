@@ -50,7 +50,8 @@ def get_movies(provedor_id, total_paginas=250):
                         'title': movie.get('title'),
                         'overview': movie.get('overview'),
                         'popularity': movie.get('popularity'),
-                        'release_date': movie.get('release_date')
+                        'release_date': movie.get('release_date'),
+                        'poster_path': movie.get('poster_path')
                     }
                     movies[movie.get('title')] = movie_data
                     ids_movies.add(movie.get('id'))  
@@ -74,7 +75,8 @@ CREATE TABLE IF NOT EXISTS movies (
     popularity REAL,
     release_date TEXT,
     vote_average REAL,
-    vote_count INTEGER
+    vote_count INTEGER,
+    poster_path TEXT
 )
 ''')
 
@@ -83,8 +85,8 @@ def insert_movie(provider, movie_dict):
     genre_ids_string = ', '.join(map(str, movie_dict.get('genre_ids', [])))  # Converte IDs para string
     try:
         cursor.execute('''
-        INSERT INTO movies (id, provider, genre_ids, weight, title, overview, original_language, popularity, release_date, vote_average, vote_count)
-        VALUES (:id, :provider, :genre_ids, 0.7, :title, :overview, :original_language, :popularity, :release_date, :vote_average, :vote_count)
+        INSERT INTO movies (id, provider, genre_ids, weight, title, overview, original_language, popularity, release_date, vote_average, vote_count, poster_path)
+        VALUES (:id, :provider, :genre_ids, 0.7, :title, :overview, :original_language, :popularity, :release_date, :vote_average, :vote_count, :poster_path)
         ''', {**movie_dict, 'provider': provider, 'genre_ids': genre_ids_string})
     except:
         return f'Error {provider}'
