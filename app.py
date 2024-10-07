@@ -1,7 +1,10 @@
 from flask import Flask, request, jsonify
 from get_movies import main, update_movie_weights
+from flask_cors import CORS
+
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://localhost:4173"]}})
 
 # Rota para buscar filmes com base no provedor e gêneros fornecidos via parâmetros de URL
 @app.route('/movies', methods=['GET'])
@@ -43,4 +46,3 @@ def feedback():
 # Inicia o servidor Flask em modo de depuração
 if __name__ == '__main__':
     app.run(debug=True)
-
