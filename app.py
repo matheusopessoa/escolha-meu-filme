@@ -3,7 +3,10 @@ from get_movies import main, update_movie_weights
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["https://escolhameufilme.com"]}})
+CORS(app, resources={r"/*": {"origins": [
+    "https://escolhameufilme.com",
+    "https://escolha-meu-filme.vercel.app"
+]}})
 
 # Rota para buscar filmes com base no provedor e gêneros fornecidos via parâmetros de URL
 @app.route('/movies', methods=['GET'])
