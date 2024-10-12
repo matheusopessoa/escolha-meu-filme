@@ -4,7 +4,8 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": [
-    "https://escolhameufilme.com",
+    "https://www.escolhameufilme.com/",
+    "https://escolhameufilme.com/",
     "https://escolhameufilme.vercel.app",
     "http://escolhameufilme.com",
     "http://www.escolhameufilme.com",
