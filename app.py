@@ -5,7 +5,10 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": [
     "https://escolhameufilme.com",
-    "https://escolhameufilme.vercel.app"
+    "https://escolhameufilme.vercel.app",
+    "http://escolhameufilme.com",
+    "http://www.escolhameufilme.com",
+    "https://escolhameufilme.com"
 ]}})
 
 # Rota para buscar filmes com base no provedor e gêneros fornecidos via parâmetros de URL
