@@ -71,7 +71,7 @@ def update_movie_weights(feedbacks_dict: dict) -> None:
             if feedback == 'like':
                 new_weight += 0.10  # Aumenta o peso se o feedback for 'like'
             elif feedback == 'dislike':
-                new_weight -= 0.10  # Diminui o peso se o feedback for 'dislike'
+                new_weight -= 0.01  # Diminui o peso se o feedback for 'dislike'
         
         # Arredonda o novo peso para 2 casas decimais
         weight = (round(new_weight, 2))
