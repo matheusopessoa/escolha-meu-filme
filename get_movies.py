@@ -63,16 +63,18 @@ def update_movie_weights(feedbacks_dict: dict) -> None:
         id, feedback = feedb['movie_id'], feedb['feedback']  # Extrai o ID do filme e o feedback
         # Obtém o peso atual do filme no banco de dados
         weight = cursor.execute('SELECT weight FROM movies WHERE id = ?', (id,)).fetchone()
-        new_weight = float(weight[0])  # Converte o peso para um número decimal
+        weight = float(weight[0])  # Converte o peso para um número decimal
 
-        # Verifica se o peso está entre 0.3 e 1.0 antes de atualizá-lo
-        if new_weight > 0.3 and new_weight < 1.0:
-            # Ajusta o peso com base no feedback do usuário
-            if feedback == 'like':
-                new_weight += 0.10  # Aumenta o peso se o feedback for 'like'
-            elif feedback == 'dislike':
-                new_weight -= 0.01  # Diminui o peso se o feedback for 'dislike'
-        
+        if feedback == 'like':
+            if weight < 1.0:
+                new_weight = weight + 0.25
+            else:
+                new_weight = 1.0
+        elif feedback == 'dislike':
+            if weight > 0.3:
+                new_weight = weight - 0.01  
+            else:
+                new_weight = 0.3
         # Arredonda o novo peso para 2 casas decimais
         weight = (round(new_weight, 2))
         # Atualiza o peso do filme no banco de dados
