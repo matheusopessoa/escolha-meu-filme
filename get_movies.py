@@ -31,7 +31,35 @@ def movies_search(provider: str, genres: list) -> list:
             f'%, {genres[0]},%', f'{genres[0]},%', f'%, {genres[0]}', genres[0], 
             f'%, {genres[1]},%', f'{genres[1]},%', f'%, {genres[1]}', genres[1]
         )).fetchall()
-    
+
+        if len(results) < 5:
+            movies_in_results = []
+            for movie in results:
+                movies_in_results.append(movie[0])
+            query = '''
+                    SELECT * FROM movies 
+                    WHERE provider = ? 
+                    AND (genre_ids LIKE ? OR genre_ids LIKE ? OR genre_ids LIKE ? OR genre_ids = ?)
+        '''
+        # Executa a query buscando filmes que correspondam ao provedor e ao único gênero
+            results2 = cursor.execute(query, (
+                provider, 
+                f'%,{genres[0]},%', f'{genres[0]},%', f'%,{genres[0]}', genres[0]
+            )).fetchall()
+
+            for movie in results2:
+                if movie[0] not in movies_in_results:
+                    results.append(movie)
+
+            results3 = cursor.execute(query, (
+                provider, 
+                f'%,{genres[1]},%', f'{genres[1]},%', f'%,{genres[1]}', genres[1]
+            )).fetchall()      
+            for movie in results3:
+                if movie[0] not in movies_in_results:
+                    results.append(movie) 
+
+
     else:
         # Caso haja apenas um gênero, monta uma query mais simples
         query = '''
@@ -111,7 +139,7 @@ def main(provider: str, genres: list) -> dict:
         # Se houver mais de 10 filmes, relaxa ainda mais o critério
         elif len(movies_list) > 10:
             if (len(movies_to_return) != len(movies_list) and 
-                weight > probability and 
+                weight > (probability - 0.1) and 
                 vote_average > 6.5):
                 movies_to_return[f'{title}'] = movie
 
