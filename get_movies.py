@@ -119,18 +119,10 @@ def main(provider: str, genres: list) -> dict:
     # Itera sobre a lista de filmes retornada pela busca
     for movie in movies_list:
         weight, vote_average, title = float(movie[3]), float(movie[9]), str(movie[4])  # Extrai peso, média de votos e título
-        probability = round(random.uniform(0, 1), 3)  # Gera um número aleatório para comparar com o peso
-
-        # Se houver mais de 100 filmes, filtra os que têm peso e média de votos maiores
-        if len(movies_list) > 100:
-            if (len(movies_to_return) != len(movies_list) and 
-                weight > probability and 
-                vote_average > 7.5):
-                # Adiciona o filme ao dicionário de retorno se atender aos critérios
-                movies_to_return[f'{title}'] = movie
+        probability = round(random.uniform(0, 0.7), 3)  # Gera um número aleatório para comparar com o peso
 
         # Se houver mais de 50 filmes, usa um critério menos restritivo
-        elif len(movies_list) > 50:
+        if len(movies_list) > 50:
             if (len(movies_to_return) != len(movies_list) and 
                 weight > probability and 
                 vote_average > 7):
