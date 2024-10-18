@@ -16,12 +16,16 @@ CORS(app, resources={r"/*": {"origins": [
 @app.route('/movies', methods=['GET'])
 def get_movies():
     provider = request.args.get('provider')
+    runtime = request.args.getlist('runtime')
+    release_year = request.args.getlist('release_year')
     genres = request.args.getlist('genres')
+
 
     if not provider or not genres:
         return jsonify({'error': 'Parâmetros "provider" e "genres" são necessários.'}), 400
 
-    movies = main(provider, genres)
+    movies = main(provider, genres, runtime, release_year)
+
     return jsonify(movies)
 
 # Rota para receber feedback dos usuários sobre os filmes
