@@ -80,16 +80,19 @@ def movies_search(provider: str, genres: list, runtime_list: list, release_year_
     for movie in results:
         runtime = movie[12]
 
-        if runtime_list[0] == 'T':
-            filter_runtime.append(movie)
-
+        if ('16' in movie[1] and '16' not in genres and provider != 'crunchyroll') or (movie[4][-2:] == ' 2') or (movie[4][-2:] == ' 3'):
+            results.remove(movie)
         else:
-            if runtime_list[1] == 'T' and runtime < 60:
+            if runtime_list[0] == 'T':
                 filter_runtime.append(movie)
-            elif runtime_list[2] == 'T' and runtime < 120:
-                filter_runtime.append(movie)
-            elif runtime_list[3] == 'T' and runtime < 250: 
-                filter_runtime.append(movie)
+
+            else:
+                if runtime_list[1] == 'T' and runtime < 60:
+                    filter_runtime.append(movie)
+                elif runtime_list[2] == 'T' and runtime < 120:
+                    filter_runtime.append(movie)
+                elif runtime_list[3] == 'T' and runtime < 250: 
+                    filter_runtime.append(movie)
 
     filter_release = []
     
@@ -153,28 +156,11 @@ def main(provider: str, genres: list, runtime: list, release_year: list) -> dict
     # Itera sobre a lista de filmes retornada pela busca
     for movie in movies_list:
         weight, vote_average, title = float(movie[3]), float(movie[9]), str(movie[4])  # Extrai peso, média de votos e título
-        probability = round(random.uniform(0, 1), 3)  # Gera um número aleatório para comparar com o peso
-
-        # Se houver mais de 100 filmes, filtra os que têm peso e média de votos maiores
-        if len(movies_list) > 100:
-            if (len(movies_to_return) != len(movies_list) and 
-                weight > probability and 
-                vote_average > 7.5):
-                # Adiciona o filme ao dicionário de retorno se atender aos critérios
-                movies_to_return[f'{title}'] = movie
 
         # Se houver mais de 50 filmes, usa um critério menos restritivo
-        elif len(movies_list) > 50:
-            if (len(movies_to_return) != len(movies_list) and 
-                weight > probability and 
+        if len(movies_list) > 50:
+            if (len(movies_to_return) != len(movies_list)  and 
                 vote_average > 7):
-                movies_to_return[f'{title}'] = movie
-
-        # Se houver mais de 10 filmes, relaxa ainda mais o critério
-        elif len(movies_list) > 10:
-            if (len(movies_to_return) != len(movies_list) and 
-                weight > (probability - 0.1) and 
-                vote_average > 6.5):
                 movies_to_return[f'{title}'] = movie
 
         # Se houver poucos filmes, usa critérios mais flexíveis
@@ -184,3 +170,5 @@ def main(provider: str, genres: list, runtime: list, release_year: list) -> dict
     
     return movies_to_return  # Retorna o dicionário com os filmes filtrados
 
+#test = movies_search('max', ['28', '80'], ['T','T','T','T'], ['T','T','T','T','T'])
+##print(test)
